@@ -6,6 +6,8 @@
 
 #pragma comment(lib, "Shlwapi.lib")
 
+#define SKYDBK_DEBUGPRINT(...) ((void)0)
+
 #ifndef _WIN64
 #error "Only win x64 is supported"
 #endif

@@ -392,16 +392,16 @@ bool CSkyDBK::LoadDBK()
 	}
 
 	std::wstring regPath = L"\\Registry\\Machine\\SYSTEM\\CurrentControlSet\\Services\\" + this->m_szServiceName;
-	wprintf(L"%s\n", regPath.c_str());
+	SKYDBK_DEBUGPRINT(L"%s\n", regPath.c_str());
 
 	UNICODE_STRING Ustr = { 0 };
 	this->m_RtlInitUnicodeString(&Ustr, regPath.c_str());
 	
-	printf("Loading driver\n");
+	SKYDBK_DEBUGPRINT("Loading driver\n");
 	NTSTATUS result = this->m_ZwLoadDriver(&Ustr);
 	if(result != 0)
 	{
-		printf("Failed: 0x%X\n", result);
+		SKYDBK_DEBUGPRINT("Failed: 0x%X\n", result);
 		return false;
 	}
 
@@ -410,7 +410,7 @@ bool CSkyDBK::LoadDBK()
 	HANDLE hThread = NULL, hCEHandle = NULL, hLocalHandle = NULL;
 	BYTE *shellcode = this->GetCreateFileShellcode(this->m_hCheatEngine, (L"\\\\.\\" + this->m_szServiceName).c_str(), &remoteShellcode);
 
-	printf("Creating thread...\n");
+	SKYDBK_DEBUGPRINT("Creating thread...\n");
 	hThread = CreateRemoteThread(this->m_hCheatEngine, NULL, NULL, reinterpret_cast<LPTHREAD_START_ROUTINE>(remoteShellcode), NULL, NULL, &dwThreadId);
 	WaitForSingleObject(hThread, INFINITE);
 	ReadProcessMemory(this->m_hCheatEngine, remoteShellcode, &hCEHandle, 4, NULL);
@@ -419,9 +419,9 @@ bool CSkyDBK::LoadDBK()
 
 	HANDLE ownProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, GetCurrentProcessId());
 
-	printf("CE Handle: 0x%X\n", this->m_hCheatEngine);
+	SKYDBK_DEBUGPRINT("CE Handle: 0x%X\n", this->m_hCheatEngine);
 	BOOL b = DuplicateHandle(this->m_hCheatEngine, hCEHandle, ownProcess, &hLocalHandle, 0, FALSE, DUPLICATE_SAME_ACCESS);
-	printf("DuplicateHandle: 0x%X\nLocal Handle: 0x%X\n", b, hLocalHandle);
+	SKYDBK_DEBUGPRINT("DuplicateHandle: 0x%X\nLocal Handle: 0x%X\n", b, hLocalHandle);
 
 	this->m_hDBK = hLocalHandle;
 	
