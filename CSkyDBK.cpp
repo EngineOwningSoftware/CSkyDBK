@@ -137,8 +137,17 @@ CSkyDBK::~CSkyDBK()
 HMODULE CSkyDBK::GetRemoteModule(const char *szModuleName, DWORD dwProcessId)
 {
 	if(!szModuleName || !dwProcessId) { return NULL; }
+	
 	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, dwProcessId);
 	if(hSnap == INVALID_HANDLE_VALUE) { return NULL; }
+	
+#if defined(MODULEENTRY32)
+#define SKYDBK_REDEF_FUNCS
+#undef MODULEENTRY32
+#undef Module32First
+#undef Module32Next
+#endif
+
 	MODULEENTRY32 me;
 	me.dwSize = sizeof(MODULEENTRY32);
 	if(Module32First(hSnap, &me))
@@ -153,6 +162,14 @@ HMODULE CSkyDBK::GetRemoteModule(const char *szModuleName, DWORD dwProcessId)
 		} while(Module32Next(hSnap, &me));
 	}
 	CloseHandle(hSnap);
+
+#ifdef SKYDBK_REDEF_FUNCS
+#undef SKYDBK_REDEF_FUNCS
+#define Module32First Module32FirstW
+#define Module32Next Module32NextW
+#define MODULEENTRY32 MODULEENTRY32W
+#endif
+
 	return NULL;
 }
 
